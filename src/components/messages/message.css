@@ -1,0 +1,77 @@
+.message-area{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: calc(100vh - 100px);
+}
+
+.message-items{
+  flex: 8;
+  overflow-y: scroll;
+  padding: 25px 15px;
+}
+.message-items-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.message-item{
+  list-style-type: none;
+  margin-bottom: 12px;
+  background-color: rgb(39, 38, 38);
+  border-radius: 2%;
+  padding: 10px;
+  color: rgb(247, 247, 247);
+  font-size: 14px;
+  width: -moz-fit-content;
+  width: fit-content;
+  max-width: 70%;
+  border-radius: 5px;
+  letter-spacing: 1px;
+}
+
+.message-item > small {
+  font-size: 9px;
+  text-align: right;
+}
+
+.mine{
+  border: 1px solid gray;
+  background-color: rgb(255, 255, 255);
+  color: rgb(39, 39, 39);
+  align-self: flex-end;
+}
+
+.message-input{
+  flex: 1.5;
+}
+
+.message-input-wrapper{
+  display: flex;
+  height: 100%;
+  padding: 10px 7px;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.message-input-wrapper > textarea {
+  height: 100%;
+  width: 85%;
+  padding: 12px;
+}
+
+.message-input-wrapper > button{
+  padding: 5px 9px;
+  margin-left: 10px;
+  letter-spacing: normal;
+  text-transform: lowercase; 
+}
+
+.activity{
+  padding-left: 7px;
+  color: teal;
+  font-weight: 700;
+  font-size: 10px;
+  margin: 0;
+  text-align: center;
+}

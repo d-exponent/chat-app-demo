@@ -1,0 +1,36 @@
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+
+button {
+  border: none;
+  outline: none;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 8px 14px;
+  border-radius: 5px;
+  transition: transform 400ms ease-in-out 25ms;
+  background-color: rgb(32, 28, 28);
+  color: rgb(236, 235, 235)
+}
+
+button:hover,
+button:focus {
+  transform: scale(1.05);
+}
+
+h1,h2,h3 {
+  font-family: 'Roboto Flex', sans-serif;
+}
+
+p{
+  font-family: 'Montserrat', sans-serif;
+}
+
+li{
+  list-style-type: none;
+}

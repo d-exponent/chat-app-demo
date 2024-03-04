@@ -1,0 +1,29 @@
+.container{
+  background-color: beige;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgb(54, 54, 54);
+  color: rgb(240, 242, 245);
+  width: 100%;
+  height: 60px;
+  padding-inline: 30px;
+}
+
+main{
+  margin: 0 auto;
+  height: calc(100vh - 60px);
+  max-width: calc(100vw - 200px);
+}
+
+.logout-btn{
+  background-color: transparent;
+  color: white;
+  letter-spacing: normal;
+  margin-left: 5px;
+  font-size: 10px;
+  text-transform: capitalize;
+}

@@ -1,0 +1,46 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: 600px;
+}
+
+form{
+  display: flex;
+  flex-direction: column;
+  margin-top: 2rem;
+}
+
+input:first-child{
+  margin-top: 20px;
+}
+
+input{
+  margin-bottom: 20px;
+  padding: 12px 7px;
+  color: rgb(97, 91, 91);
+  font-size: 1.1rem;
+}
+
+.toggle_wrapper{
+  align-self: flex-end;
+}
+
+.submit_btn{
+  background-color: rgb(73, 69, 69);
+  color: rgb(243, 235, 221);
+  text-transform: uppercase;
+}
+
+.toggle_btn{
+  padding: 0;
+  text-decoration: underline;
+  background-color: transparent;
+  outline: none;
+  border: none;
+  color: teal;
+  transition: transform 200ms ease-in-out 25ms;
+}
+
+.toggle_btn:hover, .toggle_btn:focus{
+  transform: scale(1.1);
+}

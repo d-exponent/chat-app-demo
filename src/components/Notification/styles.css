@@ -1,0 +1,29 @@
+.notification {
+  display: grid;
+  color: #F8F8F8;
+  box-sizing: border-box;
+  padding: 8px;
+  place-content: center;
+  position: fixed;
+  width: min(80%, 350px);
+  right: 20px;
+  bottom: 20px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 999;
+}
+
+
+/* 'error' | 'info' | 'success' */
+
+.error {
+  background-color: rgba(237, 28, 36, 0.8);
+}
+
+.info {
+  background-color: rgba(168, 100, 168, 0.9);
+}
+
+.success {
+  background-color: rgba(27, 156, 133, 0.9);
+}
