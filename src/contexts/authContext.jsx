@@ -1,7 +1,8 @@
 /* eslint-disable react/prop-types */
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useState } from "react";
 
-import useSocket from '../hooks/useSocket';
+import useSocket from "../hooks/useSocket";
+import useNotification from "../hooks/useNotification";
 
 const AuthContext = createContext({
   logout: () => {},
@@ -10,49 +11,62 @@ const AuthContext = createContext({
   setUser: () => {},
 });
 
-const SESSION_STORAGE_KEY = 'Radical!@#$&#*#';
+const SESSION_STORAGE_KEY = "Radical!@#$&#*#";
 
 export const AuthContextProvider = (props) => {
   const { socket } = useSocket();
+  const { handleNotification } = useNotification();
 
+  const [logout, setLogout] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authDetials, setAuthDetials] = useState(null);
 
+  // on component mount, try to retrive user from session storage
   useEffect(() => {
     const savedDetails = sessionStorage.getItem(SESSION_STORAGE_KEY);
 
     if (savedDetails) {
       setAuthDetials(JSON.parse(savedDetails));
+      setIsAuthenticated(true)
     }
-    
   }, []);
 
+  // Connect to socket server with the id of connected user for server side authentication
+  // store user details in session storage
   useEffect(() => {
-    setIsAuthenticated(Boolean(authDetials));
-  }, [authDetials]);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      socket.auth = { id: authDetials?._id };
+    if (isAuthenticated === true && authDetials?._id) {
+      socket.auth = { id: authDetials._id };
       socket.connect();
-      return sessionStorage.setItem(
-        SESSION_STORAGE_KEY,
-        JSON.stringify(authDetials)
-      );
+
+      sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(authDetials));
     }
   }, [authDetials, isAuthenticated, socket]);
 
-  const logout = () => {
-    socket.disconnect();
-    sessionStorage.removeItem(SESSION_STORAGE_KEY);
-    setAuthDetials(null)
+  useEffect(() => {
+    if (logout === true) {
+      socket.disconnect();
+
+      setAuthDetials(null);
+      setIsAuthenticated(false);
+
+      handleNotification.show("success", "Logout successfull.");
+    }
+  }, [logout]);
+
+  const handleLogout = () => {
+    setLogout(true);
+  };
+
+  const handleSetUser = (user) => {
+    setAuthDetials(user);
+    setIsAuthenticated(!!user);
   };
 
   const contextValue = {
-    logout,
     isAuthenticated,
     user: authDetials,
-    setUser: (user) => setAuthDetials(user),
+    logout: handleLogout,
+    setUser: handleSetUser,
   };
 
   return (

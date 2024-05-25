@@ -1,46 +1,75 @@
 .wrapper {
-  display: flex;
-  flex-direction: column;
-  max-width: 600px;
+  --margin-big: 20px;
+  --margin-small: 12px;
+  --paddin-block-big: 12px;
+  --paddin-block-small: 8px;
 }
 
-form{
+form {
   display: flex;
   flex-direction: column;
   margin-top: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-input:first-child{
-  margin-top: 20px;
+input:first-child {
+  margin-top: var(--margin-big);
 }
 
-input{
-  margin-bottom: 20px;
-  padding: 12px 7px;
+input {
+  margin-bottom: var(--margin-big);
+  padding: var(--paddin-block-big) calc(var(--paddin-block-big) - 3px);
   color: rgb(97, 91, 91);
   font-size: 1.1rem;
 }
 
-.toggle_wrapper{
-  align-self: flex-end;
-}
-
-.submit_btn{
-  background-color: rgb(73, 69, 69);
+.submit_btn {
+  background-color: rgb(43, 41, 41);
   color: rgb(243, 235, 221);
   text-transform: uppercase;
+  padding-block: var(--paddin-block-big);
+  margin-bottom: 7px;
 }
 
-.toggle_btn{
+.toggle_btn_wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.toggle_btn {
   padding: 0;
   text-decoration: underline;
+  text-transform: capitalize;
   background-color: transparent;
   outline: none;
   border: none;
   color: teal;
-  transition: transform 200ms ease-in-out 25ms;
+  margin: 0 auto;
 }
 
-.toggle_btn:hover, .toggle_btn:focus{
-  transform: scale(1.1);
+.submit_btn:hover,
+.submit_btn:focus {
+  background-color: rgb(59, 57, 57);
+}
+
+.toggle_btn:hover,
+.toggle_btn:focus {
+  color: rgb(2, 44, 44);
+}
+
+@media only screen and (max-width: 600px) {
+  input:first-child {
+    margin-top: var(--margin-small);
+  }
+
+  input {
+    margin-bottom: var(--margin-small);
+    padding: var(--paddin-block-small) calc(var(--paddin-block-small) - 2px);
+    font-size: 0.8rem;
+  }
+
+  .submit_btn {
+    padding-block: var(--paddin-block-small);
+  }
 }

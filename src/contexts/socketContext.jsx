@@ -1,8 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { createContext, useEffect, useMemo } from 'react';
-import { io } from 'socket.io-client';
-
+import { createContext, useEffect, useMemo } from "react";
+import { io } from "socket.io-client";
 
 const SocketContext = createContext({
   socket: {
@@ -12,11 +11,12 @@ const SocketContext = createContext({
   },
 });
 
-const socket = io('http://localhost:8080', { autoConnect: true });
-// const socket = io('http://localhost:8080');
+
+const socket = io("http://localhost:5000", {
+  autoConnect: false, // hold off on emmiting a connection event 
+});
 
 export const SocketContextProvider = (props) => {
-
   return (
     <SocketContext.Provider value={{ socket }}>
       {props.children}
