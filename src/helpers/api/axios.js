@@ -1,12 +1,7 @@
 import axios from "axios";
 
-const myAxios = axios.create({
-  baseURL: "http://localhost:5000",
-  withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
+const axiosForMessageSvc = axios.create({
+  baseURL: "http://localhost:5000", // message service base url
 });
 
-
-export default myAxios;
+export default axiosForMessageSvc;

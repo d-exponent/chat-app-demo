@@ -6,16 +6,16 @@ import Register from "../../components/authentication/Register";
 import "./styles.css";
 
 const AuthForms = () => {
-  const [showLogin, setShowLogin] = useState(true);
+  const [showLogin] = useState(true);
 
   const toggleShowLogin = () => {
-    setShowLogin((prev) => !prev);
+    // setShowLogin((prev) => !prev);
   };
 
   return (
     <div className="wrapper">
-      {showLogin && <Login togglePage={toggleShowLogin} />}
-      {!showLogin && <Register togglePage={toggleShowLogin} />}
+      <Login togglePage={toggleShowLogin} />
+      {/* {!showLogin && <Register togglePage={toggleShowLogin} />} */}
     </div>
   );
 };

@@ -1,41 +1,35 @@
 /* eslint-disable react/prop-types */
-import { useState } from "react";
+import { useRef } from "react";
 import axios from "axios";
 
 import useNotification from "../../hooks/useNotification";
 
-import myAxios from "../../helpers/api/axios";
 import useAuth from "../../hooks/useAuth";
 
 function Login({ togglePage }) {
   const { setUser } = useAuth();
   const { handleNotification } = useNotification();
 
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
-  const handleChange = ({ target: { name, value } }) => {
-    setFormData((prev) => {
-      return {
-        ...prev,
-        [name]: value,
-      };
-    });
-  };
+  const emailRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const email = emailRef.current?.value;
+
+    if (!email) {
+      handleNotification.show("error", "Please provide your email address");
+      return;
+    }
+
     handleNotification.show("info", "Loggin in ....");
 
-    try {
-      const res = await axios.post(
-        "https://api.taronapp.com/authentication-service/api/v1/auth/login",
-        formData
-      );
+    // Just a local server that fetches users by email.
+    // Tarons auth url uses email and password which is cumbersome as i only know mine.
+    const url = "http://localhost:3000/login";
 
+    try {
+      const res = await axios.post(url, { email: email.trim().toLowerCase() });
       setUser(res.data.data);
       handleNotification.show("success", "Login was successfull");
     } catch (e) {
@@ -48,21 +42,9 @@ function Login({ togglePage }) {
       <form className="login_form">
         <input
           className="login_form_email"
-          name="email"
-          type="text"
-          onChange={handleChange}
-          value={formData.email}
+          type="email"
           placeholder="Email Address"
-          required
-        />
-
-        <input
-          className="login_form_password"
-          name="password"
-          type="password"
-          onChange={handleChange}
-          value={formData.password}
-          placeholder="Password"
+          ref={emailRef}
           required
         />
 

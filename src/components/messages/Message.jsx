@@ -1,138 +1,141 @@
 /* eslint-disable react/prop-types */
 
-import { useEffect, useRef, useState } from 'react';
-import myAxios from '../../helpers/api/axios';
-import useAuth from '../../hooks/useAuth';
-import useNotification from '../../hooks/useNotification';
-import useSocket from '../../hooks/useSocket';
-import './message.css';
+import { useEffect, useRef, useState } from "react";
+import axiosForMessageSvc from "../../helpers/api/axios";
+import useAuth from "../../hooks/useAuth";
+import useNotification from "../../hooks/useNotification";
+import useSocket from "../../hooks/useSocket";
+import "./message.css";
 
 const Message = ({ chatId }) => {
   const { user } = useAuth();
   const { socket } = useSocket();
   const { handleNotification } = useNotification();
 
-  const [sendMessage, setSendMessage] = useState('');
-  const [activityUsername, setActivityUsername] = useState(null);
-  const [memberStatus, setMemberStatus] = useState(null);
-
   const [messages, setMessages] = useState([]);
+  const [inputBoxValue, setInputBoxValue] = useState("");
+  const [userIsTyping, setUserIsTyping] = useState(null);
 
   const scrollRef = useRef(null);
 
+  // fetch all the messages for a chat by chatId.
   useEffect(() => {
     const controller = new AbortController();
 
-    myAxios
-      .get(`/api/v1/messages?chatId=${chatId}`, {
-        signal: controller.signal,
-      })
+    const options = {
+      signal: controller.signal,
+    };
+
+    axiosForMessageSvc
+      .get(`api/v1/messages?chatId=${chatId}`, options)
       .then((res) => setMessages(res.data.data))
-      .catch((e) => console.log(e));
+      .catch(console.warn);
 
     return () => controller.abort();
   }, [chatId]);
 
+  // Reset userIsTyping
   useEffect(() => {
-    let timer;
+    if (userIsTyping) {
+      const timer = setTimeout(setUserIsTyping, 1000, null);
 
-    timer = setTimeout(() => {
-      if (activityUsername) setActivityUsername(null);
-      if (memberStatus) setMemberStatus(null);
-    }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [userIsTyping]);
 
-    return () => clearTimeout(timer);
-  }, [activityUsername, memberStatus]);
+  const handleReceivedMessageFromSocket = (receivedMessage) => {
+    const isSameMessage = (prevMessage) =>
+      prevMessage.createdAt === receivedMessage.createdAt &&
+      prevMessage.content === receivedMessage.content;
+
+    setMessages((previousMessages) => {
+      const isReceivedMessageInMessages = previousMessages.some(isSameMessage);
+
+      return isReceivedMessageInMessages
+        ? [...previousMessages]
+        : [...previousMessages, receivedMessage];
+    });
+  };
 
   useEffect(() => {
-    socket.on('receiveMessage', (data) => {
-      setMessages((prev) =>
-        prev.some((p) => p.text === data.text && p.createdAt === data.createdAt)
-          ? [...prev]
-          : [...prev, data]
-      );
-    });
+    socket.on("recieveMessage", handleReceivedMessageFromSocket);
 
-    socket.on('activity', (user) => {
-      setActivityUsername(user.username);
+    socket.on("isTyping", (userData) => {
+      setUserIsTyping(userData.username + " is typing");
     });
-
-    socket.on('status', (status) => {
-      setMemberStatus(status);
-    });
-  }, [socket]);
+  });
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({
-      behaviour: 'smooth',
-      block: 'end',
+      behaviour: "smooth",
+      block: "end",
     });
   }, [messages]);
 
-  const handleSetSendMessage = (e) => {
-    socket.emit('activity', { chat: chatId, username: user.username });
-    setSendMessage(e.target.value);
+  const handleMessageInputBoxValue = (e) => {
+    setInputBoxValue(e.target.value);
+    setUserIsTyping(true);
+    socket.emit("showIsTyping", chatId);
   };
 
-  const handleCLick = async () => {
-    if (sendMessage.length === 0) {
-      return handleNotification.show('error', "You didn't write anything");
+  const handleCreateNewMessage = async () => {
+    if (inputBoxValue.length === 0) {
+      handleNotification.show("error", "You didn't write anything");
+      return;
     }
 
     const data = {
-      senderId: user._id,
-      text: sendMessage,
+      content: inputBoxValue,
       createdAt: new Date().toISOString(),
+      senderId: user._id,
     };
 
-    try {
-      socket.emit('sendMessage', { chat: chatId, type: 'text', ...data });
+    socket.emit("sendMessage", {
+      room: chatId,
+      message: data,
+    });
 
-      await myAxios.post('/api/v1/messages', {
-        chatId: chatId,
+    try {
+      const res = await axiosForMessageSvc.post("api/v1/messages", {
+        chatId,
         ...data,
       });
 
-      setSendMessage('');
-      handleNotification.show('info', 'Message Sent');
-    } catch (e) {
-      //
-    }
+      setInputBoxValue("");
+      setMessages((prevMessages) => [...prevMessages, res.data.data]);
+      handleNotification.show("info", "Message Sent");
+    } catch {}
   };
 
+  const messagesList = messages?.map((message, i) => {
+    return (
+      <li
+        key={i}
+        className={
+          message.senderId === user._id ? "message-item mine" : "message-item "
+        }
+      >
+        <p>{message.content}</p>
+        <small>{new Date(message.createdAt).toLocaleTimeString("en-US")}</small>
+      </li>
+    );
+  });
+
   return (
-    <div className='message-area'>
-      <div className='message-items'>
-        <ul className='message-items-wrapper' ref={scrollRef}>
-          {messages?.map((m, i) => {
-            return (
-              <li
-                key={i}
-                className={
-                  m.senderId === user._id
-                    ? 'message-item mine'
-                    : 'message-item '
-                }
-              >
-                <p>{m.text}</p>
-                <small>
-                  {new Date(m.createdAt).toLocaleTimeString('en-US')}
-                </small>
-              </li>
-            );
-          })}
+    <div className="message-area">
+      <div className="message-items">
+        <ul className="message-items-wrapper" ref={scrollRef}>
+          {messagesList}
         </ul>
       </div>
-      <div className='message-input'>
-        <p className='activity'>
-          {activityUsername ? `${activityUsername} is typing ...` : null}
-        </p>
-        <div className='message-input-wrapper'>
+      <div className="message-input">
+        {userIsTyping && <p className="activity">{userIsTyping}</p>}
+        <div className="message-input-wrapper">
           <textarea
-            placeholder='write something ...'
-            onChange={handleSetSendMessage}
+            placeholder="write something ..."
+            onChange={handleMessageInputBoxValue}
           />
-          <button id='submit-btn' onClick={handleCLick}>
+          <button id="submit-btn" onClick={handleCreateNewMessage}>
             SEND
           </button>
         </div>
