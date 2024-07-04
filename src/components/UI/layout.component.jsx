@@ -1,23 +1,23 @@
 /* eslint-disable react/prop-types */
-import './layout.css';
+import "./layout.css";
 
-import useAuth from '../../hooks/useAuth';
+import useAuth from "../../hooks/useAuth";
 
 const Layout = ({ children }) => {
   const { user, isAuthenticated, logout } = useAuth();
 
   return (
-    <div className='container'>
+    <div className="container">
       <header>
-        <h2>Chat application</h2>
-        <div>
-          <span>{(user && user.username) && user.username}</span>
-          {isAuthenticated && (
-            <button className='logout-btn' onClick={logout}>
+        <h2 className="logo">Chat application</h2>
+        {isAuthenticated === true && (
+          <div className="details-wrapper">
+            <span>{user.userName}</span>
+            <button className="logout-btn" onClick={logout}>
               logout
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </header>
       <main>
         <>{children}</>

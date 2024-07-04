@@ -11,8 +11,7 @@ const AuthContext = createContext({
   setUser: (details) => {},
 });
 
-
-const STORAGE = localStorage
+const STORAGE = localStorage;
 const SESSION_STORAGE_KEY = "Radical!@#$&#*#";
 
 export const AuthContextProvider = (props) => {
@@ -24,17 +23,6 @@ export const AuthContextProvider = (props) => {
   const [authDetials, setAuthDetials] = useState(null);
 
   // Just logs the user to the console if there's a valid user
-  useEffect(() => {
-    if (authDetials !== null) {
-      const timer = setTimeout(console.table, 1000, {
-        userName: authDetials.userName,
-        userId: authDetials._id,
-        names: authDetials.fullName,
-      });
-
-      return () => clearTimeout(timer);
-    }
-  }, [authDetials]);
 
   // on component mount, try to retrive user from session storage
   useEffect(() => {
@@ -50,13 +38,15 @@ export const AuthContextProvider = (props) => {
   // store user details in session storage
   useEffect(() => {
     if (isAuthenticated === true && authDetials?._id) {
+      console.log("Setting User");
       socket.auth = { id: authDetials._id };
       socket.connect();
+
+      console.log("🛑", socket.auth);
 
       STORAGE.setItem(SESSION_STORAGE_KEY, JSON.stringify(authDetials));
     }
   }, [authDetials, isAuthenticated, socket]);
-
 
   // Remoce the user from session storage
   useEffect(() => {

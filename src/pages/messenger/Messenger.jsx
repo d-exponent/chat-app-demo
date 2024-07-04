@@ -19,17 +19,34 @@ const Messenger = () => {
 
   const [userChats, setUserChats] = useState([]);
   const [fetchUserChats, setFetchUserChats] = useState(true);
-  const [selectedChatId, setSelectedChatId] = useState(null);
+  const [focusedChatId, setFocusedChatId] = useState(null);
+
+  console.log(`🛑🛑${user.userName} chats`, userChats);
 
   const userNameInputRef = useRef(null);
 
+  // Focus on the first chat
   useEffect(() => {
+    if (userChats.length && focusedChatId === null) {
+      setFocusedChatId(userChats[0]._id);
+    }
+  }, [userChats]);
+
+  useEffect(() => {
+    // Create a new room for each chat by chatId
+    // If the room already exists or the socket is already in the room. It will be ingnored otherwise it will be added respectively
     userChats.forEach((chat) => {
       socket.emit("createRoom", chat._id, console.warn);
     });
   }, [userChats]);
 
-  // /api/v1/chats?memberId=65bce1e36925e90008b3aff3
+  const handleFetchChatsForUserError = (e) => {
+    if (e.status !== 404) {
+      handleNotification.show("error", e.message ?? "couldn't find any chats");
+      return;
+    }
+    console.error(e);
+  };
 
   // Get All the conversations (chats/CHATS) of the current user from db
   useEffect(() => {
@@ -41,30 +58,19 @@ const Messenger = () => {
       signal: controller.signal,
     };
 
-    const handleError = (e) => {
-      if (e.status !== 404) {
-        handleNotification.show(
-          "error",
-          e.message ?? "couldn't find any chats"
-        );
-      } else {
-        console.error(e);
-      }
-    };
-
     axiosForMessageSvc
       .get(`api/v1/chats?memberId=${user._id}`, options)
-      .catch(handleError)
       .then((res) => setUserChats(res.data.data))
-      .finally(() => setFetchUserChats(false))
+      .then(() => setFetchUserChats(false))
+      .catch(handleFetchChatsForUserError);
 
     return () => controller.abort();
   }, [user, fetchUserChats]);
 
-  const getChatIdByMemberUsername = (memberUsername) => {
-    const hasMemberUsername = (chat) => {
-      return chat.members.some((member) => member.userName === memberUsername);
-    };
+  const getChatIdByMemberUsername = (username) => {
+    // return true if a chat object has a member with the username
+    const hasMemberUsername = (chat) =>
+      chat.members.some((member) => member.userName === username);
 
     const targetChat = userChats.find(hasMemberUsername);
 
@@ -72,7 +78,6 @@ const Messenger = () => {
   };
 
   const deleteChat = async (username) => {
-    // must be delete then. GOD I MISS TYPESCRIPT. Why didn't i use typescript here 😒
     const chatId = getChatIdByMemberUsername(username);
 
     if (chatId == null) {
@@ -84,31 +89,29 @@ const Messenger = () => {
 
     try {
       await axiosForMessageSvc.delete(`api/v1/chats/${chatId}`);
-      console.log("Delte Success 🛑");
     } catch (e) {
       console.error("end chat error", e);
+    } finally {
+      setFetchUserChats(true);
     }
-    setFetchUserChats(true);
   };
 
   const newChat = async (username) => {
-    const getUserUrl = `http://localhost:3000/user?userName=${username}`;
-
     try {
-      const { data } = await axios.get(getUserUrl);
+      // Get the friends User Object from db with their username
+      const { data } = await axios.get(
+        `http://localhost:3000/user?userName=${username}`
+      );
 
-      const res = await axiosForMessageSvc.post("api/v1/chats", {
+      // Create a new chat with friend using the friendId from above fetch call
+      await axiosForMessageSvc.post("api/v1/chats", {
         members: [user._id, data.data._id],
       });
-
-      console.log(res.data);
     } catch (e) {
-      if (e.status === 404) {
-        handleNotification.show("error", e.message ?? "opps");
-      }
       console.error("start new chat error", e);
+    } finally {
+      setFetchUserChats(true);
     }
-    setFetchUserChats(true);
   };
 
   const handleStartDeleteChat = (action) => async () => {
@@ -134,15 +137,18 @@ const Messenger = () => {
         <div className="chat-items-wrapper">
           <ChatList
             chats={userChats}
-            focusOnChat={setSelectedChatId}
-            focusedChatId={selectedChatId}
+            focusOnChat={setFocusedChatId}
+            focusedChatId={focusedChatId}
           />
         </div>
       </div>
       <div className="chat-main">
         <div className="chat-main-wrapper">
-          {selectedChatId === null && <h2>Your friends await you.</h2>}
-          {selectedChatId !== null && <Message chatId={selectedChatId} />}
+          {focusedChatId === null && (
+            <h2>{"Start chatting with friends and family"}</h2>
+          )}
+
+          {focusedChatId !== null && <Message chatId={focusedChatId} />}
         </div>
       </div>
       <div className="chat-aside-right">

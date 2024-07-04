@@ -1,10 +1,12 @@
 /* eslint-disable react/prop-types */
 
 import { useEffect, useRef, useState } from "react";
-import axiosForMessageSvc from "../../helpers/api/axios";
+
 import useAuth from "../../hooks/useAuth";
 import useNotification from "../../hooks/useNotification";
 import useSocket from "../../hooks/useSocket";
+
+import axiosForMessageSvc from "../../helpers/api/axios";
 import "./message.css";
 
 const Message = ({ chatId }) => {
@@ -20,6 +22,8 @@ const Message = ({ chatId }) => {
 
   // fetch all the messages for a chat by chatId.
   useEffect(() => {
+    setMessages([]);
+
     const controller = new AbortController();
 
     const options = {
@@ -44,9 +48,10 @@ const Message = ({ chatId }) => {
   }, [userIsTyping]);
 
   const handleReceivedMessageFromSocket = (receivedMessage) => {
+    // Two messages may have the same content but can never be created at the same time to the millisecond. So we use that
     const isSameMessage = (prevMessage) =>
       prevMessage.createdAt === receivedMessage.createdAt &&
-      prevMessage.content === receivedMessage.content;
+      prevMessage.content === receivedMessage.content; // this part is just a little extra. Not entirely neccessary
 
     setMessages((previousMessages) => {
       const isReceivedMessageInMessages = previousMessages.some(isSameMessage);
@@ -57,14 +62,21 @@ const Message = ({ chatId }) => {
     });
   };
 
+  // handle new incoming socket messages
   useEffect(() => {
-    socket.on("recieveMessage", handleReceivedMessageFromSocket);
+    socket.on("roomUsers", (payload) => {
+      console.log("😁 ROOM USERS", payload?.members);
+    });
 
+    socket.on("recieveMessage", handleReceivedMessageFromSocket, console.warn);
+
+    // Handle show is typing
     socket.on("isTyping", (userData) => {
       setUserIsTyping(userData.username + " is typing");
     });
   });
 
+  // scroll to bottom of messages pane
   useEffect(() => {
     scrollRef.current?.scrollIntoView({
       behaviour: "smooth",
@@ -74,7 +86,6 @@ const Message = ({ chatId }) => {
 
   const handleMessageInputBoxValue = (e) => {
     setInputBoxValue(e.target.value);
-    setUserIsTyping(true);
     socket.emit("showIsTyping", chatId);
   };
 
@@ -95,14 +106,16 @@ const Message = ({ chatId }) => {
       message: data,
     });
 
+    setMessages((prevMessages) => [...prevMessages, data]);
+
+    // keep a record of the message in the db so when user logins or refresehes. They can see the message
     try {
-      const res = await axiosForMessageSvc.post("api/v1/messages", {
+      await axiosForMessageSvc.post("api/v1/messages", {
         chatId,
         ...data,
       });
 
       setInputBoxValue("");
-      setMessages((prevMessages) => [...prevMessages, res.data.data]);
       handleNotification.show("info", "Message Sent");
     } catch {}
   };
@@ -112,7 +125,7 @@ const Message = ({ chatId }) => {
       <li
         key={i}
         className={
-          message.senderId === user._id ? "message-item mine" : "message-item "
+          message.senderId === user._id ? "message-item mine" : "message-item"
         }
       >
         <p>{message.content}</p>
@@ -134,9 +147,10 @@ const Message = ({ chatId }) => {
           <textarea
             placeholder="write something ..."
             onChange={handleMessageInputBoxValue}
+            value={inputBoxValue}
           />
           <button id="submit-btn" onClick={handleCreateNewMessage}>
-            SEND
+            Send
           </button>
         </div>
       </div>

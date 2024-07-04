@@ -25,7 +25,6 @@ function Login({ togglePage }) {
     handleNotification.show("info", "Loggin in ....");
 
     // Just a local server that fetches users by email.
-    // Tarons auth url uses email and password which is cumbersome as i only know mine.
     const url = "http://localhost:3000/login";
 
     try {
