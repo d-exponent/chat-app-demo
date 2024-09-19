@@ -14,29 +14,34 @@ import axios from "axios";
 
 const Messenger = () => {
   const { user } = useAuth();
-  const { socket } = useSocket();
+  const { socket, socketMsg } = useSocket();
   const { handleNotification } = useNotification();
 
   const [userChats, setUserChats] = useState([]);
   const [fetchUserChats, setFetchUserChats] = useState(true);
   const [focusedChatId, setFocusedChatId] = useState(null);
 
-  console.log(`🛑🛑${user.userName} chats`, userChats);
-
   const userNameInputRef = useRef(null);
+
+  useEffect(() => {
+    console.log("Creating room 👍👍");
+    socket.emit("createRoom", socketMsg.chatId, console.warn);
+  }, []);
 
   // Focus on the first chat
   useEffect(() => {
     if (userChats.length && focusedChatId === null) {
       setFocusedChatId(userChats[0]._id);
     }
-  }, [userChats]);
+  }, [userChats, focusedChatId]);
 
   useEffect(() => {
     // Create a new room for each chat by chatId
     // If the room already exists or the socket is already in the room. It will be ingnored otherwise it will be added respectively
     userChats.forEach((chat) => {
-      socket.emit("createRoom", chat._id, console.warn);
+      socket.emit("createRoom", chat._id, (e) => {
+        console.warn("🛑Create room error", e);
+      });
     });
   }, [userChats]);
 
@@ -68,7 +73,6 @@ const Messenger = () => {
   }, [user, fetchUserChats]);
 
   const getChatIdByMemberUsername = (username) => {
-    // return true if a chat object has a member with the username
     const hasMemberUsername = (chat) =>
       chat.members.some((member) => member.userName === username);
 
@@ -131,8 +135,39 @@ const Messenger = () => {
     action === "start" ? await newChat(userName) : await deleteChat(userName);
   };
 
+  const handleUpdateIsDelivered = () => {
+    console.log("Updating delivered");
+
+    const msg = {
+      ...socketMsg,
+      isDelivered: true,
+      from: user.userName ?? user.email,
+    };
+
+    socketMsg.isDelivered = true;
+    socket.emit("updateDelivered", msg, console.warn);
+  };
+
+  const handleUpdateIsRead = () => {
+    console.log("Updating IsRead");
+
+    const msg = structuredClone({
+      ...socketMsg,
+      isRead: true,
+      isReadAt: new Date(),
+      from: user.userName ?? user.email,
+    });
+
+    socket.emit("updateIsRead", msg, console.warn);
+
+  };
+
   return (
     <div className="chats-container">
+      <div>
+        <button onClick={handleUpdateIsRead}> updateIsRead</button>
+        <button onClick={handleUpdateIsDelivered}> updateIsDelivered</button>
+      </div>
       <div className="chat-aside-left">
         <div className="chat-items-wrapper">
           <ChatList

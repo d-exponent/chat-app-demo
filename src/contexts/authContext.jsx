@@ -38,11 +38,8 @@ export const AuthContextProvider = (props) => {
   // store user details in session storage
   useEffect(() => {
     if (isAuthenticated === true && authDetials?._id) {
-      console.log("Setting User");
       socket.auth = { id: authDetials._id };
       socket.connect();
-
-      console.log("🛑", socket.auth);
 
       STORAGE.setItem(SESSION_STORAGE_KEY, JSON.stringify(authDetials));
     }

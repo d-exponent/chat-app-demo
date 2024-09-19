@@ -51,7 +51,7 @@ const Message = ({ chatId }) => {
     // Two messages may have the same content but can never be created at the same time to the millisecond. So we use that
     const isSameMessage = (prevMessage) =>
       prevMessage.createdAt === receivedMessage.createdAt &&
-      prevMessage.content === receivedMessage.content; // this part is just a little extra. Not entirely neccessary
+      prevMessage.content === receivedMessage.content;
 
     setMessages((previousMessages) => {
       const isReceivedMessageInMessages = previousMessages.some(isSameMessage);
@@ -65,15 +65,18 @@ const Message = ({ chatId }) => {
   // handle new incoming socket messages
   useEffect(() => {
     socket.on("roomUsers", (payload) => {
-      console.log("😁 ROOM USERS", payload?.members);
+      console.log("😁 ROOM USERS", payload);
     });
 
     socket.on("recieveMessage", handleReceivedMessageFromSocket, console.warn);
 
     // Handle show is typing
-    socket.on("isTyping", (userData) => {
-      setUserIsTyping(userData.username + " is typing");
-    });
+
+  });
+
+  socket.on("activity", (data) => {
+    console.log('Activity Socket response 🛑', data)
+    setUserIsTyping(data.userName + " is typing");
   });
 
   // scroll to bottom of messages pane
@@ -86,7 +89,11 @@ const Message = ({ chatId }) => {
 
   const handleMessageInputBoxValue = (e) => {
     setInputBoxValue(e.target.value);
-    socket.emit("showIsTyping", chatId);
+
+    //
+    socket.emit("showActivity", chatId, (e) => {
+      console.log("Show activity Error", e);
+    });
   };
 
   const handleCreateNewMessage = async () => {

@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
 import useSocket from "../../hooks/useSocket";
 
@@ -8,8 +7,17 @@ const ChatList = ({ chats, focusOnChat, focusedChatId }) => {
   const { user } = useAuth();
   const { socket } = useSocket();
 
-  const getOtherChatMember = (chat) =>
-    chat.members.find((member) => member.userName !== user.userName);
+  const getOtherChatMemberUserName = (chat) => {
+    const otherMember = chat.members.find(
+      (member) => member.userName !== user.userName
+    );
+
+    if (otherMember?.userName == null) {
+      return 'UnkownUserName';
+    } 
+
+    return otherMember.userName;
+  };
 
   /**
    * The server groups chats into two categories.
@@ -20,7 +28,7 @@ const ChatList = ({ chats, focusOnChat, focusedChatId }) => {
    * Private chats do not have a name so it's referenced by the other member's userName in this app.
    */
   const chatName = (chat) =>
-    chat.category === "group" ? chat.name : getOtherChatMember(chat).userName;
+    chat.category === "group" ? chat.name : getOtherChatMemberUserName(chat);
 
   const handleChatItemClick = (chatId) => {
     return () => {
