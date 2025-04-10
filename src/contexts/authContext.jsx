@@ -15,7 +15,7 @@ const STORAGE = localStorage;
 const SESSION_STORAGE_KEY = "Radical!@#$&#*#";
 
 export const AuthContextProvider = (props) => {
-  const { socket } = useSocket();
+  const { socket,  } = useSocket();
   const { handleNotification } = useNotification();
 
   const [logout, setLogout] = useState(false);
